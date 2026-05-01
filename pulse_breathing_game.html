@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пульс — Тренировка Дыхания</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #1a2e1a;
+            color: #c8d6c8;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #8fa88f, #a8a080);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: #7a8f7a;
+            font-size: 0.9rem;
+        }
+
+        /* Навигация */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 16px;
+            border: 1px solid #2d4a2d;
+            border-radius: 12px;
+            background: #243a24;
+            color: #7a8f7a;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            border-color: #5a7a5a;
+            color: #c8d6c8;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #3d5c3d, #5c5c3d);
+            border-color: transparent;
+            color: #e8e8d8;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Экраны */
+        .screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.5s;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Базовая зона дыхания */
+        .breath-zone {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 30px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .breath-circle {
+            position: absolute;
+            border-radius: 50%;
+            transition: all 0.1s linear;
+        }
+
+        .breath-circle.outer {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(143, 168, 143, 0.12) 0%, transparent 70%);
+            border: 2px solid rgba(143, 168, 143, 0.25);
+        }
+
+        .breath-circle.inner {
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(168, 160, 128, 0.15) 0%, transparent 70%);
+            border: 2px solid rgba(168, 160, 128, 0.3);
+        }
+
+        .breath-circle.core {
+            width: 30%;
+            height: 30%;
+            background: linear-gradient(135deg, #3d5c3d, #5c5c3d);
+            box-shadow: 0 0 40px rgba(61, 92, 61, 0.3);
+        }
+
+        .breath-text {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            z-index: 10;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: all 0.3s;
+        }
+
+        .breath-timer {
+            position: absolute;
+            bottom: -40px;
+            font-size: 2rem;
+            font-weight: 200;
+            color: #8fa88f;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Прогресс */
+        .progress-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        .progress-ring .bg {
+            stroke: rgba(255,255,255,0.05);
+        }
+
+        .progress-ring .progress {
+            stroke: url(#gradient);
+            stroke-dasharray: 880;
+            stroke-dashoffset: 880;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        /* Кнопки управления */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3d5c3d, #5c5c3d);
+            color: #e8e8d8;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: #243a24;
+            color: #7a8f7a;
+            border: 1px solid #2d4a2d;
+        }
+
+        .btn-secondary:hover {
+            border-color: #5a7a5a;
+            color: #c8d6c8;
+        }
+
+        /* Описание техники */
+        .technique-info {
+            background: #243a24;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #2d4a2d;
+        }
+
+        .technique-info h3 {
+            color: #8fa88f;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .technique-info p {
+            color: #7a8f7a;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .technique-steps {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: #1a2e1a;
+            border-radius: 10px;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3d5c3d, #5c5c3d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            font-size: 0.85rem;
+            color: #c8d6c8;
+        }
+
+        /* ===== АНКЕР ===== */
+        .anchor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .anchor-item {
+            aspect-ratio: 1;
+            background: #243a24;
+            border: 2px solid #2d4a2d;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 2rem;
+            position: relative;
+            overflow: hidden;
+            padding: 8px;
+        }
+
+        .anchor-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(61, 92, 61, 0.15), rgba(92, 92, 61, 0.15));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .anchor-item:hover {
+            border-color: #5a7a5a;
+            transform: scale(1.05);
+        }
+
+        .anchor-item:hover::before {
+            opacity: 1;
+        }
+
+        .anchor-item:active {
+            transform: scale(0.95);
+        }
+
+        .anchor-item .anchor-emoji {
+            font-size: 2rem;
+            margin-bottom: 4px;
+            z-index: 1;
+        }
+
+        .anchor-item .anchor-label {
+            font-size: 0.75rem;
+            color: #7a8f7a;
+            z-index: 1;
+            text-align: center;
+        }
+
+        /* Всплывающая подсказка анкера */
+        .anchor-tooltip {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #243a24;
+            color: #c8d6c8;
+            padding: 16px 24px;
+            border-radius: 16px;
+            font-size: 1rem;
+            text-align: center;
+            max-width: 90%;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            border: 2px solid #5a7a5a;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            line-height: 1.5;
+        }
+
+        .anchor-tooltip.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .anchor-tooltip .anchor-tooltip-icon {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* Частицы для анкера */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: floatUp 1.5s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(0); }
+        }
+
+        /* ===== 5-4-3-2-1 — счетчики ===== */
+        .senses-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .sense-card {
+            background: #243a24;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #2d4a2d;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sense-card:hover {
+            border-color: #5a7a5a;
+        }
+
+        .sense-card.completed {
+            border-color: #5a8a5a;
+            background: rgba(90, 138, 90, 0.1);
+        }
+
+        .sense-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .sense-icon {
+            font-size: 2.5rem;
+        }
+
+        .sense-title {
+            font-size: 1.1rem;
+            color: #c8d6c8;
+            font-weight: 500;
+        }
+
+        .sense-prompt {
+            color: #7a8f7a;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        /* Счетчик */
+        .sense-counter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .counter-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #2d4a2d;
+            background: #1a2e1a;
+            color: #8fa88f;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .counter-btn:hover {
+            border-color: #5a7a5a;
+            background: #243a24;
+        }
+
+        .counter-btn:active {
+            transform: scale(0.9);
+        }
+
+        .counter-value {
+            font-size: 2rem;
+            font-weight: 300;
+            color: #a8a080;
+            min-width: 50px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .counter-target {
+            font-size: 0.85rem;
+            color: #7a8f7a;
+            margin-top: 8px;
+        }
+
+        .counter-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1a2e1a;
+            border-radius: 3px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .counter-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3d5c3d, #a8a080);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        .sense-card.completed .counter-progress-fill {
+            background: linear-gradient(90deg, #5a8a5a, #7a9a5a);
+        }
+
+        /* Статистика */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .stat-card {
+            background: #243a24;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #2d4a2d;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 300;
+            background: linear-gradient(135deg, #8fa88f, #a8a080);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #7a8f7a;
+            margin-top: 5px;
+        }
+
+        /* Настройки */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #243a24;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #2d4a2d;
+        }
+
+        .setting-label {
+            color: #c8d6c8;
+        }
+
+        .toggle {
+            width: 50px;
+            height: 26px;
+            background: #2d4a2d;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active {
+            background: linear-gradient(135deg, #3d5c3d, #5c5c3d);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: #c8d6c8;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle.active::after {
+            transform: translateX(24px);
+        }
+
+        /* Звуковая волна */
+        .sound-wave {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 40px;
+            margin: 20px 0;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(to top, #3d5c3d, #a8a080);
+            border-radius: 2px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes wave {
+            0%, 100% { height: 10px; }
+            50% { height: 35px; }
+        }
+
+        /* Адаптив */
+        @media (max-width: 400px) {
+            .breath-zone {
+                width: 240px;
+                height: 240px;
+            }
+            header h1 {
+                font-size: 1.5rem;
+            }
+            .anchor-grid {
+                gap: 8px;
+            }
+            .anchor-item .anchor-label {
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Успокаивающий фон */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.25;
+        }
+
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: drift 20s infinite ease-in-out;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(30px, -30px); }
+            66% { transform: translate(-20px, 20px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- SVG для градиента прогресса -->
+    <svg width="0" height="0">
+        <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3d5c3d" />
+                <stop offset="100%" stop-color="#a8a080" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- Фон -->
+    <div class="ambient-bg" id="ambientBg"></div>
+
+    <!-- Всплывающая подсказка анкера -->
+    <div class="anchor-tooltip" id="anchorTooltip">
+        <span class="anchor-tooltip-icon" id="tooltipIcon">✋</span>
+        <span id="tooltipText">Текст подсказки</span>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <h1>ПУЛЬС</h1>
+            <p>Тренировка дыхания и осознанности</p>
+        </header>
+
+        <!-- Навигация -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('breathe')">Дыхание</button>
+            <button class="nav-tab" onclick="switchTab('anchor')">Анкер</button>
+            <button class="nav-tab" onclick="switchTab('senses')">5-4-3-2-1</button>
+            <button class="nav-tab" onclick="switchTab('stats')">Статистика</button>
+        </nav>
+
+        <!-- Экран Дыхание -->
+        <div class="screen active" id="screen-breathe">
+            <div class="technique-selector" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <button class="btn btn-secondary" onclick="setTechnique('square')" id="btn-square" style="padding: 8px 16px; font-size: 0.8rem;">Квадрат 4-4-4-4</button>
+                <button class="btn btn-secondary" onclick="setTechnique('478')" id="btn-478" style="padding: 8px 16px; font-size: 0.8rem;">4-7-8</button>
+                <button class="btn btn-secondary" onclick="setTechnique('coherent')" id="btn-coherent" style="padding: 8px 16px; font-size: 0.8rem;">Когерентное</button>
+            </div>
+
+            <div class="breath-zone">
+                <svg class="progress-ring" viewBox="0 0 300 300">
+                    <circle class="bg" cx="150" cy="150" r="140"></circle>
+                    <circle class="progress" cx="150" cy="150" r="140" id="progressCircle"></circle>
+                </svg>
+                <div class="breath-circle outer" id="circleOuter"></div>
+                <div class="breath-circle inner" id="circleInner"></div>
+                <div class="breath-circle core" id="circleCore"></div>
+                <div class="breath-text" id="breathText">Готовы?</div>
+                <div class="breath-timer" id="breathTimer"></div>
+            </div>
+
+            <div class="sound-wave" id="soundWave" style="opacity: 0;">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn" onclick="toggleBreathing()">Начать</button>
+                <button class="btn btn-secondary" onclick="resetBreathing()">Сброс</button>
+            </div>
+
+            <div class="technique-info">
+                <h3 id="techTitle">Квадратное дыхание</h3>
+                <p id="techDesc">Классическая техника, используемая военными и спортсменами для мгновенного снижения стресса.</p>
+                <div class="technique-steps" id="techSteps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-text">Вдох через нос — 4 секунды</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-text">Задержка дыхания — 4 секунды</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-text">Выдох через рот — 4 секунды</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-text">Пауза — 4 секунды</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран Анкер -->
+        <div class="screen" id="screen-anchor">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <h2 style="font-weight: 300; color: #8fa88f;">Анкер</h2>
+                <p style="color: #7a8f7a; font-size: 0.9rem;">Нажимайте на элементы, чтобы вернуться в настоящий момент</p>
+            </div>
+
+            <div class="anchor-grid">
+                <div class="anchor-item" onclick="activateAnchor(this, 'touch')">
+                    <span class="anchor-emoji">✋</span>
+                    <span class="anchor-label">Касание</span>
+                </div>
+                <div class="anchor-item" onclick="activateAnchor(this, 'sight')">
+                    <span class="anchor-emoji">👁️</span>
+                    <span class="anchor-label">Зрение</span>
+                </div>
+                <div class="anchor-item" onclick="activateAnchor(this, 'sound')">
+                    <span class="anchor-emoji">👂</span>
+                    <span class="anchor-label">Слух</span>
+                </div>
+                <div class="anchor-item" onclick="activateAnchor(this, 'smell')">
+                    <span class="anchor-emoji">👃</span>
+                    <span class="anchor-label">Обоняние</span>
+                </div>
+                <div class="anchor-item" onclick="activateAnchor(this, 'taste')">
+                    <span class="anchor-emoji">👅</span>
+                    <span class="anchor-label">Вкус</span>
+                </div>
+                <div class="anchor-item" onclick="activateAnchor(this, 'breath')">
+                    <span class="anchor-emoji">🫁</span>
+                    <span class="anchor-label">Дыхание</span>
+                </div>
+                <div class="anchor-item" onclick="activateAnchor(this, 'ground')">
+                    <span class="anchor-emoji">🦶</span>
+                    <span class="anchor-label">Опора</span>
+                </div>
+                <div class="anchor-item" onclick="activateAnchor(this, 'temp')">
+                    <span class="anchor-emoji">🌡️</span>
+                    <span class="anchor-label">Температура</span>
+                </div>
+                <div class="anchor-item" onclick="activateAnchor(this, 'heart')">
+                    <span class="anchor-emoji">❤️</span>
+                    <span class="anchor-label">Пульс</span>
+                </div>
+            </div>
+
+            <div class="technique-info">
+                <h3>Техника анкеринга</h3>
+                <p>Когда тревога нарастает, фокус переключается на внешние или внутренние ощущения. Это помогает выйти из цикла панических мыслей и вернуться в безопасное «здесь и сейчас».</p>
+            </div>
+        </div>
+
+        <!-- Экран 5-4-3-2-1 — с счетчиками -->
+        <div class="screen" id="screen-senses">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <h2 style="font-weight: 300; color: #8fa88f;">5-4-3-2-1</h2>
+                <p style="color: #7a8f7a; font-size: 0.9rem;">Найдите вокруг себя и отметьте каждое действие:</p>
+            </div>
+
+            <div class="senses-container">
+                <!-- 5 вещей, которые видите -->
+                <div class="sense-card" id="sense-sight">
+                    <div class="sense-card-header">
+                        <div class="sense-icon">👁️</div>
+                        <div class="sense-title">5 вещей, которые вы видите</div>
+                    </div>
+                    <div class="sense-prompt">Например: лампа, дерево за окном, книга на полке...</div>
+                    <div class="sense-counter">
+                        <div class="counter-btn" onclick="changeCount('sight', -1)">−</div>
+                        <div class="counter-value" id="count-sight">0</div>
+                        <div class="counter-btn" onclick="changeCount('sight', 1)">+</div>
+                    </div>
+                    <div class="counter-target">из 5</div>
+                    <div class="counter-progress-bar">
+                        <div class="counter-progress-fill" id="progress-sight" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- 4 вещи, которые чувствуете -->
+                <div class="sense-card" id="sense-touch">
+                    <div class="sense-card-header">
+                        <div class="sense-icon">✋</div>
+                        <div class="sense-title">4 вещи, которые вы чувствуете</div>
+                    </div>
+                    <div class="sense-prompt">Например: текстура ткани на рукаве, тепло чашки...</div>
+                    <div class="sense-counter">
+                        <div class="counter-btn" onclick="changeCount('touch', -1)">−</div>
+                        <div class="counter-value" id="count-touch">0</div>
+                        <div class="counter-btn" onclick="changeCount('touch', 1)">+</div>
+                    </div>
+                    <div class="counter-target">из 4</div>
+                    <div class="counter-progress-bar">
+                        <div class="counter-progress-fill" id="progress-touch" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- 3 звука -->
+                <div class="sense-card" id="sense-sound">
+                    <div class="sense-card-header">
+                        <div class="sense-icon">👂</div>
+                        <div class="sense-title">3 звука, которые вы слышите</div>
+                    </div>
+                    <div class="sense-prompt">Например: пение птиц, шум машин за окном, тиканье часов...</div>
+                    <div class="sense-counter">
+                        <div class="counter-btn" onclick="changeCount('sound', -1)">−</div>
+                        <div class="counter-value" id="count-sound">0</div>
+                        <div class="counter-btn" onclick="changeCount('sound', 1)">+</div>
+                    </div>
+                    <div class="counter-target">из 3</div>
+                    <div class="counter-progress-bar">
+                        <div class="counter-progress-fill" id="progress-sound" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- 2 запаха -->
+                <div class="sense-card" id="sense-smell">
+                    <div class="sense-card-header">
+                        <div class="sense-icon">👃</div>
+                        <div class="sense-title">2 запаха, которые вы чувствуете</div>
+                    </div>
+                    <div class="sense-prompt">Например: кофе, свежий воздух, аромат мыла...</div>
+                    <div class="sense-counter">
+                        <div class="counter-btn" onclick="changeCount('smell', -1)">−</div>
+                        <div class="counter-value" id="count-smell">0</div>
+                        <div class="counter-btn" onclick="changeCount('smell', 1)">+</div>
+                    </div>
+                    <div class="counter-target">из 2</div>
+                    <div class="counter-progress-bar">
+                        <div class="counter-progress-fill" id="progress-smell" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- 1 вкус -->
+                <div class="sense-card" id="sense-taste">
+                    <div class="sense-card-header">
+                        <div class="sense-icon">👅</div>
+                        <div class="sense-title">1 вкус, который вы чувствуете</div>
+                    </div>
+                    <div class="sense-prompt">Например: мятная жвачка, вода, остатки утреннего кофе...</div>
+                    <div class="sense-counter">
+                        <div class="counter-btn" onclick="changeCount('taste', -1)">−</div>
+                        <div class="counter-value" id="count-taste">0</div>
+                        <div class="counter-btn" onclick="changeCount('taste', 1)">+</div>
+                    </div>
+                    <div class="counter-target">из 1</div>
+                    <div class="counter-progress-bar">
+                        <div class="counter-progress-fill" id="progress-taste" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="resetSenses()" style="margin-top: 10px;">Начать заново</button>
+        </div>
+
+        <!-- Экран Статистика -->
+        <div class="screen" id="screen-stats">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="font-weight: 300; color: #8fa88f;">Ваша статистика</h2>
+                <p style="color: #7a8f7a; font-size: 0.9rem;">Прогресс осознанности</p>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="statSessions">0</div>
+                    <div class="stat-label">Сеансов дыхания</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statMinutes">0</div>
+                    <div class="stat-label">Минут практики</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAnchors">0</div>
+                    <div class="stat-label">Анкеров активировано</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="streakDays">0</div>
+                    <div class="stat-label">Дней подряд</div>
+                </div>
+            </div>
+
+            <div class="technique-info" style="margin-top: 20px;">
+                <h3>💡 Совет дня</h3>
+                <p id="dailyTip">Регулярная практика дыхательных техник укрепляет парасимпатическую нервную систему, снижая базальный уровень тревожности.</p>
+            </div>
+
+            <div style="margin-top: 20px; width: 100%;">
+                <div class="setting-row">
+                    <span class="setting-label">Звуковое сопровождение</span>
+                    <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Вибрация</span>
+                    <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Тёмная тема</span>
+                    <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== СОСТОЯНИЕ =====
+        let currentTechnique = 'square';
+        let isBreathing = false;
+        let breathInterval = null;
+        let currentPhase = 0;
+        let phaseTimeLeft = 0;
+        let sessionStartTime = null;
+        let totalBreathMinutes = 0;
+        let totalSessions = 0;
+        let totalAnchors = 0;
+
+        // Счетчики 5-4-3-2-1
+        const senseTargets = {
+            sight: 5,
+            touch: 4,
+            sound: 3,
+            smell: 2,
+            taste: 1
+        };
+        let senseCounts = {
+            sight: 0,
+            touch: 0,
+            sound: 0,
+            smell: 0,
+            taste: 0
+        };
+
+        // Техники дыхания
+        const techniques = {
+            square: {
+                title: 'Квадратное дыхание',
+                desc: 'Классическая техника, используемая военными и спортсменами для мгновенного снижения стресса. Равные интервалы помогают стабилизировать сердцебиение.',
+                phases: [
+                    { text: 'ВДОХ', duration: 4, scale: 1.3 },
+                    { text: 'ЗАДЕРЖКА', duration: 4, scale: 1.3 },
+                    { text: 'ВЫДОХ', duration: 4, scale: 0.7 },
+                    { text: 'ПАУЗА', duration: 4, scale: 0.7 }
+                ]
+            },
+            '478': {
+                title: 'Дыхание 4-7-8',
+                desc: 'Техника доктора Эндрю Вейла. Удлинённый выдох активирует парасимпатическую нервную систему и вызывает естественное успокоение.',
+                phases: [
+                    { text: 'ВДОХ', duration: 4, scale: 1.3 },
+                    { text: 'ЗАДЕРЖКА', duration: 7, scale: 1.3 },
+                    { text: 'ВЫДОХ', duration: 8, scale: 0.6 }
+                ]
+            },
+            coherent: {
+                title: 'Когерентное дыхание',
+                desc: 'Дыхание 5 раз в минуту (вдох 6 сек, выдох 6 сек) выравнивает ритм сердца и мозга, создавая состояние когерентности.',
+                phases: [
+                    { text: 'ВДОХ', duration: 6, scale: 1.3 },
+                    { text: 'ВЫДОХ', duration: 6, scale: 0.7 }
+                ]
+            }
+        };
+
+        // ===== НАВИГАЦИЯ =====
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`screen-${tab}`).classList.add('active');
+
+            if (tab === 'stats') updateStats();
+        }
+
+        // ===== ДЫХАНИЕ =====
+        function setTechnique(tech) {
+            if (isBreathing) return;
+            currentTechnique = tech;
+
+            document.querySelectorAll('.technique-selector .btn').forEach(b => {
+                b.style.background = '#243a24';
+                b.style.color = '#7a8f7a';
+            });
+
+            const btn = document.getElementById(`btn-${tech}`);
+            btn.style.background = 'linear-gradient(135deg, #3d5c3d, #5c5c3d)';
+            btn.style.color = '#e8e8d8';
+
+            const t = techniques[tech];
+            document.getElementById('techTitle').textContent = t.title;
+            document.getElementById('techDesc').textContent = t.desc;
+
+            const stepsContainer = document.getElementById('techSteps');
+            stepsContainer.innerHTML = '';
+
+            t.phases.forEach((phase, i) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'step';
+                const label = phase.text === 'ВДОХ' ? 'Вдох' : 
+                             phase.text === 'ВЫДОХ' ? 'Выдох' :
+                             phase.text === 'ЗАДЕРЖКА' ? 'Задержка' : 'Пауза';
+                const action = phase.text === 'ВДОХ' ? 'через нос' : 
+                              phase.text === 'ВЫДОХ' ? 'через рот' : '';
+                stepDiv.innerHTML = `
+                    <div class="step-number">${i + 1}</div>
+                    <div class="step-text">${label} ${action} — ${phase.duration} секунд</div>
+                `;
+                stepsContainer.appendChild(stepDiv);
+            });
+        }
+
+        function toggleBreathing() {
+            if (isBreathing) {
+                stopBreathing();
+            } else {
+                startBreathing();
+            }
+        }
+
+        function startBreathing() {
+            isBreathing = true;
+            sessionStartTime = Date.now();
+            document.getElementById('startBtn').textContent = 'Пауза';
+            document.getElementById('soundWave').style.opacity = '1';
+
+            currentPhase = 0;
+            runPhase();
+
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        function stopBreathing() {
+            isBreathing = false;
+            clearTimeout(breathInterval);
+            document.getElementById('startBtn').textContent = 'Продолжить';
+            document.getElementById('soundWave').style.opacity = '0';
+            document.getElementById('breathText').textContent = 'Пауза';
+
+            if (sessionStartTime) {
+                const elapsed = (Date.now() - sessionStartTime) / 60000;
+                totalBreathMinutes += elapsed;
+                totalSessions++;
+                sessionStartTime = null;
+            }
+        }
+
+        function resetBreathing() {
+            stopBreathing();
+            currentPhase = 0;
+            document.getElementById('startBtn').textContent = 'Начать';
+            document.getElementById('breathText').textContent = 'Готовы?';
+            document.getElementById('breathTimer').textContent = '';
+            resetCircles();
+        }
+
+        function resetCircles() {
+            ['circleOuter', 'circleInner', 'circleCore'].forEach(id => {
+                document.getElementById(id).style.transform = 'scale(1)';
+            });
+            document.getElementById('progressCircle').style.strokeDashoffset = 880;
+        }
+
+        function runPhase() {
+            if (!isBreathing) return;
+
+            const tech = techniques[currentTechnique];
+            const phase = tech.phases[currentPhase];
+
+            document.getElementById('breathText').textContent = phase.text;
+            phaseTimeLeft = phase.duration;
+
+            const scale = phase.scale;
+            document.getElementById('circleOuter').style.transform = `scale(${scale})`;
+            document.getElementById('circleInner').style.transform = `scale(${scale * 0.9})`;
+            document.getElementById('circleCore').style.transform = `scale(${scale * 0.8})`;
+
+            const core = document.getElementById('circleCore');
+            if (phase.text === 'ВДОХ') {
+                core.style.background = 'linear-gradient(135deg, #4a7a4a, #3d5c3d)';
+            } else if (phase.text === 'ВЫДОХ') {
+                core.style.background = 'linear-gradient(135deg, #5c5c3d, #7a7a5a)';
+            } else {
+                core.style.background = 'linear-gradient(135deg, #6a6a4a, #3d5c3d)';
+            }
+
+            updateTimer();
+        }
+
+        function updateTimer() {
+            if (!isBreathing) return;
+
+            document.getElementById('breathTimer').textContent = Math.ceil(phaseTimeLeft);
+
+            const tech = techniques[currentTechnique];
+            const phase = tech.phases[currentPhase];
+            const progress = 1 - (phaseTimeLeft / phase.duration);
+            const circumference = 880;
+            const offset = circumference - (progress * circumference);
+            document.getElementById('progressCircle').style.strokeDashoffset = offset;
+
+            if (phaseTimeLeft > 0) {
+                phaseTimeLeft -= 0.1;
+                breathInterval = setTimeout(updateTimer, 100);
+            } else {
+                currentPhase = (currentPhase + 1) % tech.phases.length;
+                runPhase();
+            }
+        }
+
+        // ===== АНКЕР — с видимой подсказкой =====
+        let tooltipTimeout = null;
+
+        function activateAnchor(element, type) {
+            totalAnchors++;
+
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 8; i++) {
+                createParticle(centerX, centerY);
+            }
+
+            if (navigator.vibrate) navigator.vibrate(30);
+
+            const prompts = {
+                touch: {
+                    icon: '✋',
+                    text: 'Почувствуйте текстуру любого предмета рядом. Обратите внимание на его температуру, твёрдость и форму.'
+                },
+                sight: {
+                    icon: '👁️',
+                    text: 'Найдите 3 предмета одного цвета. Опишите их форму и размер про себя.'
+                },
+                sound: {
+                    icon: '👂',
+                    text: 'Прислушайтесь к самому тихому звуку вокруг. Затем — к самому громкому.'
+                },
+                smell: {
+                    icon: '👃',
+                    text: 'Сделайте глубокий вдох через нос. Что вы чувствуете? Кофе, воздух, мыло?'
+                },
+                taste: {
+                    icon: '👅',
+                    text: 'Почувствуйте вкус во рту прямо сейчас. Слегка прищурьте язык — что изменилось?'
+                },
+                breath: {
+                    icon: '🫁',
+                    text: 'Сосредоточьтесь на ощущении воздуха в ноздрях. Тёплый или холодный? Быстрый или медленный?'
+                },
+                ground: {
+                    icon: '🦶',
+                    text: 'Почувствуйте опору стоп о пол. Перенесите вес с пятки на носок. Земля держит вас.'
+                },
+                temp: {
+                    icon: '🌡️',
+                    text: 'Определите температуру воздуха на коже лица и рук. Есть ли разница?'
+                },
+                heart: {
+                    icon: '❤️',
+                    text: 'Положите руку на сердце. Почувствуйте биение. Скажите себе: «Я в безопасности».'
+                }
+            };
+
+            const prompt = prompts[type];
+            const tooltip = document.getElementById('anchorTooltip');
+            const tooltipIcon = document.getElementById('tooltipIcon');
+            const tooltipText = document.getElementById('tooltipText');
+
+            tooltipIcon.textContent = prompt.icon;
+            tooltipText.textContent = prompt.text;
+
+            tooltip.classList.add('show');
+
+            if (tooltipTimeout) clearTimeout(tooltipTimeout);
+            tooltipTimeout = setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, 5000);
+        }
+
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 10 + 5;
+            const colors = ['#8fa88f', '#a8a080', '#5a7a5a', '#7a8f7a'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            particle.style.cssText = `
+                width: ${size}px;
+                height: ${size}px;
+                background: ${color};
+                left: ${x + (Math.random() - 0.5) * 60}px;
+                top: ${y + (Math.random() - 0.5) * 60}px;
+                box-shadow: 0 0 10px ${color};
+            `;
+
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1500);
+        }
+
+        // ===== 5-4-3-2-1 — счетчики =====
+        function changeCount(sense, delta) {
+            const target = senseTargets[sense];
+            let newValue = senseCounts[sense] + delta;
+
+            if (newValue < 0) newValue = 0;
+            if (newValue > target) newValue = target;
+
+            senseCounts[sense] = newValue;
+
+            document.getElementById(`count-${sense}`).textContent = newValue;
+
+            const progressPercent = (newValue / target) * 100;
+            document.getElementById(`progress-${sense}`).style.width = `${progressPercent}%`;
+
+            const card = document.getElementById(`sense-${sense}`);
+            if (newValue >= target) {
+                card.classList.add('completed');
+                if (navigator.vibrate) navigator.vibrate([20, 50, 20]);
+            } else {
+                card.classList.remove('completed');
+            }
+        }
+
+        function resetSenses() {
+            senseCounts = { sight: 0, touch: 0, sound: 0, smell: 0, taste: 0 };
+
+            Object.keys(senseTargets).forEach(sense => {
+                document.getElementById(`count-${sense}`).textContent = '0';
+                document.getElementById(`progress-${sense}`).style.width = '0%';
+                document.getElementById(`sense-${sense}`).classList.remove('completed');
+            });
+        }
+
+        // ===== СТАТИСТИКА =====
+        function updateStats() {
+            document.getElementById('statSessions').textContent = Math.floor(totalSessions);
+            document.getElementById('statMinutes').textContent = Math.floor(totalBreathMinutes);
+            document.getElementById('statAnchors').textContent = totalAnchors;
+
+            const tips = [
+                'Регулярная практика дыхательных техник укрепляет парасимпатическую нервную систему.',
+                'Выдох длиннее вдоха активирует блуждающий нерв и снижает тревожность.',
+                'Техника 5-4-3-2-1 помогает при диссоциации и отключении от реальности.',
+                'Когерентное дыхание улучшает вариабельность сердечного ритма за 2 минуты.',
+                'Анкеринг — мощный инструмент для прерывания панических атак на ранней стадии.'
+            ];
+            document.getElementById('dailyTip').textContent = tips[Math.floor(Math.random() * tips.length)];
+        }
+
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
+        const bg = document.getElementById('ambientBg');
+        for (let i = 0; i < 3; i++) {
+            const orb = document.createElement('div');
+            orb.className = 'ambient-orb';
+            const size = 200 + Math.random() * 200;
+            orb.style.cssText = `
+                width: ${size}px;
+                height: ${size}px;
+                background: ${['rgba(61, 92, 61, 0.2)', 'rgba(92, 92, 61, 0.2)', 'rgba(143, 168, 143, 0.15)'][i]};
+                left: ${Math.random() * 80}%;
+                top: ${Math.random() * 80}%;
+                animation-delay: ${i * 5}s;
+            `;
+            bg.appendChild(orb);
+        }
+
+        setTechnique('square');
+    </script>
+</body>
+</html>>
+</html>
